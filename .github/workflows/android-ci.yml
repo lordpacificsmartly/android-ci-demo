@@ -11,18 +11,15 @@ jobs:
   # ----------------------------
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
           cache: gradle
-
       - name: Cache Gradle
         uses: actions/cache@v4
         with:
@@ -32,19 +29,14 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-
       - name: Run ktlint
         run: ./gradlew ktlintCheck --stacktrace
-
       - name: Run detekt
         run: ./gradlew detekt --stacktrace
-
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace --info
-
       - name: Run Unit Tests
         run: ./gradlew test --stacktrace
-
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
@@ -57,33 +49,26 @@ jobs:
   instrumented:
     runs-on: ubuntu-latest
     needs: build
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-
       - name: Build Instrumented Test APKs
         run: ./gradlew assembleDebug assembleAndroidTest
-
       - name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-
       - name: Set up gcloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           version: 'latest'
-
       - name: List available FTL devices
         run: gcloud firebase test android models list
-
       - name: Run tests in Firebase Test Lab
         run: |
           gcloud firebase test android run \
@@ -94,40 +79,11 @@ jobs:
             --timeout 10m
 
   # ----------------------------
-  # 3. Deploy job (Google Play)
-  # ----------------------------
-#  deploy:
-#    runs-on: ubuntu-latest
-#    needs: instrumented
-#
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v4
-#
-#      - name: Set up JDK 17
-#        uses: actions/setup-java@v4
-#        with:
-#          distribution: temurin
-#          java-version: 17
-#
-#      - name: Build Release APK
-#        run: ./gradlew assembleRelease
-#
-#      - name: Upload to Google Play
-#        uses: r0adkll/upload-google-play@v1
-#        with:
-#          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_JSON }}
-#          packageName: com.example.myapp   # <-- replace with your app's package name
-#          releaseFile: app/build/outputs/apk/release/app-release.apk
-#          track: internal
-
-  # ----------------------------
-  # 4. Notify job (Email)
+  # 3. Notify job (Email)
   # ----------------------------
   notify:
     runs-on: ubuntu-latest
-    needs: deploy
-
+    needs: instrumented
     steps:
       - name: Send Email
         uses: dawidd6/action-send-mail@v3
@@ -145,4 +101,27 @@ jobs:
             ✅ Build + Lint + Detekt
             ✅ Unit Tests
             ✅ Instrumented Tests (Firebase Test Lab)
-            ✅ Deployment to Play Store (Internal Track)
+
+  # ----------------------------
+  # 4. Deploy job (Google Play) - LAST
+  # ----------------------------
+#  deploy:
+#    runs-on: ubuntu-latest
+#    needs: [notify]
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#      - name: Set up JDK 17
+#        uses: actions/setup-java@v4
+#        with:
+#          distribution: temurin
+#          java-version: 17
+#      - name: Build Release APK
+#        run: ./gradlew assembleRelease
+#      - name: Upload to Google Play
+#        uses: r0adkll/upload-google-play@v1
+#        with:
+#          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_JSON }}
+#          packageName: com.example.myapp   # <-- replace with your app's package name
+#          releaseFile: app/build/outputs/apk/release/app-release.apk
+#          track: internal
