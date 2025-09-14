@@ -72,9 +72,6 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Install system image
-        run: echo "y" | sdkmanager "system-images;android-29;google_apis;x86_64"
-
       - name: Check running devices
         if: failure()
         run: adb devices -l
