@@ -72,10 +72,8 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Check running devices
-        if: failure()
-        run: adb devices -l
-
+      - name: Install required system image
+        run: echo "y" | /Users/runner/Library/Android/sdk/cmdline-tools/latest/bin/sdkmanager "system-images;android-29;google_apis;x86_64"
 
           # Step 3: Run emulator + connected tests
       - name: Run Instrumented Tests
@@ -89,3 +87,7 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -no-audio -no-boot-anim
           disable-animations: true
           script: ./gradlew connectedCheck
+
+      - name: Check running devices
+        if: failure()
+        run: adb devices -l
