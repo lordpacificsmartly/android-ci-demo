@@ -1,0 +1,57 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Step 2: Set up JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      # Step 3: Cache Gradle dependencies
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # Step 4: Run ktlint (code style)
+      - name: Run ktlint
+        run: ./gradlew ktlintCheck --stacktrace
+
+      # Step 5: Run detekt (static analysis)
+      - name: Run detekt
+        run: ./gradlew detekt --stacktrace
+
+      # Step 6: Build Debug APK
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --stacktrace --info
+
+      # Step 7: Run Unit Tests
+      - name: Run Unit Tests
+        run: ./gradlew test --stacktrace
+
+      # Step 8: Upload APK artifact
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: app/build/outputs/**/*.apk
