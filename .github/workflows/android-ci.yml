@@ -85,22 +85,18 @@ jobs:
     runs-on: ubuntu-latest
     needs: instrumented
     steps:
-      - name: Send Email
-        uses: dawidd6/action-send-mail@v3
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@v1.24.0
         with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "Android CI/CD Workflow Result"
-          to: "team@example.com"
-          from: "ci-bot@example.com"
-          secure: true
-          body: |
-            CI/CD Workflow finished.
-            ✅ Build + Lint + Detekt
-            ✅ Unit Tests
-            ✅ Instrumented Tests (Firebase Test Lab)
+          payload: |
+            {
+            "text": "*Android CI/CD Workflow Result* :rocket:\n
+            ✅ Build + Lint + Detekt\n
+            ✅ Unit Tests\n
+            ✅ Instrumented Tests (Firebase Test Lab)"
+        }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   # ----------------------------
   # 4. Deploy job (Google Play) - LAST
