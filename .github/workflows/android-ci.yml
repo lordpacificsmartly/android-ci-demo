@@ -91,7 +91,7 @@ jobs:
         with:
           payload: |
            {
-            "text": "*Android CI/CD Workflow Result* :rocket:\n
+            "text": "*Android CI/CD Workflow Result* :rocket:\n✅ Build + Lint + Detekt\n✅ Unit Tests\n✅ Instrumented Tests (Firebase Test Lab)"
             ✅ Build + Lint + Detekt\n
             ✅ Unit Tests\n
             ✅ Instrumented Tests (Firebase Test Lab)"
