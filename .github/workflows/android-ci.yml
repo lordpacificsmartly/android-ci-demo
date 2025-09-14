@@ -72,22 +72,29 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Install required system image
-        run: echo "y" | /Users/runner/Library/Android/sdk/cmdline-tools/latest/bin/sdkmanager "system-images;android-29;google_apis;x86_64"
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
 
           # Step 3: Run emulator + connected tests
       - name: Run Instrumented Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 29
-          target: google_apis
+          api-level: 26
+          target: default
           arch: x86_64
-          profile: Nexus 6
+          profile: Nexus 4
           emulator-boot-timeout: 1200   # timeout in seconds (15 minutes)
-          emulator-options: -no-snapshot-save -no-window -no-audio -no-boot-anim
-          disable-animations: true
-          script: ./gradlew connectedCheck
+          emulator-options: -no-snapshot-load -no-window -no-audio -no-boot-anim
+          script: |
+            adb wait-for-device
+            adb shell input keyevent 82
+            ./gradlew connectedAndroidTest --continue
+     
 
-      - name: Check running devices
+      - name: Upload Test Reports
         if: failure()
-        run: adb devices -l
+        uses: actions/upload-artifact@v4
+        with:
+                name: android-test-report
+                path: '**/build/reports/androidTests/connected/'
