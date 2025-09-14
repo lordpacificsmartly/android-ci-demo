@@ -92,9 +92,6 @@ jobs:
           payload: |
            {
             "text": "*Android CI/CD Workflow Result* :rocket:\n✅ Build + Lint + Detekt\n✅ Unit Tests\n✅ Instrumented Tests (Firebase Test Lab)"
-            ✅ Build + Lint + Detekt\n
-            ✅ Unit Tests\n
-            ✅ Instrumented Tests (Firebase Test Lab)"
            }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
